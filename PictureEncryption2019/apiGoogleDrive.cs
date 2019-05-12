@@ -16,21 +16,22 @@ using System.Threading;
 using Google.Apis.Drive.v3.Data;
 using System.Net;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace PictureEncryption2019
 {
     class apiGoogleDrive
     {
         /* Общие переменные для класса */
-        public bool isError;
-        public bool isConnection;
-        public string sError;
-        private string sPathDirApp;
+        public bool isError;                                                // Флаг наличия ошибки
+        public bool isConnection;                                           // Флаг наличия соединения
+        public string sError;                                               // Текст ошибки
+        private string sPathDirApp;                                         // Путь к временной папке пользователя
         /* Переменне для API Google Drive */
         private string[] Scopes = { DriveService.Scope.Drive };             // Скопы для подключения к Google Drive
         private string ApplicationName = "PictureEncryption2019";           // Имя проекта, создаваемого при получение <client_id.json>
         private UserCredential googleUserCredential;                        // Класс для интегрированной аутентификации Google Drive на ПК
-        private string sPathClientIdJSON;                                   // Созданный файл <client_id.json> для подключения к Google Drive
+        //private string sPathClientIdJSON;                                   // Созданный файл <client_id.json> для подключения к Google Drive
         private DriveService varDriveService;                               // Класс API функций Google Drive
         /// <summary>
         /// Конструктор класса <apiGoogleDrive>
@@ -40,7 +41,7 @@ namespace PictureEncryption2019
             isError = false;
             sError = null;
             sPathDirApp = Path.GetTempPath();
-            sPathClientIdJSON = Environment.CurrentDirectory + @"\Resources\client_id.json";
+            //sPathClientIdJSON = Environment.CurrentDirectory + @"\Resources\client_id.json";
             if (checkConection())
             {
                 isConnection = true;
@@ -93,9 +94,10 @@ namespace PictureEncryption2019
         private UserCredential GetCredentials()
         {
             UserCredential credential;
-            using (var stream = new FileStream(sPathClientIdJSON, FileMode.Open, FileAccess.Read))
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            using (StreamReader stream = new StreamReader(assembly.GetManifestResourceStream("PictureEncryption2019.Resources.client_id.json")))
             {
-                ClientSecrets varClientSecrets = GoogleClientSecrets.Load(stream).Secrets;
+                ClientSecrets varClientSecrets = GoogleClientSecrets.Load(stream.BaseStream).Secrets;
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(varClientSecrets, Scopes, "user", CancellationToken.None, new FileDataStore(sPathDirApp, true)).Result;
             }
             return credential;
